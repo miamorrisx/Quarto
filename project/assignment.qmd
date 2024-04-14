@@ -1,0 +1,28 @@
+---
+title: "Assignment"
+format: html
+editor: visual
+---
+
+Map Visualisations
+
+This section includes visualisations representing life expectancy across different countries.\
+
+# Map Visualisations
+
+This section includes visualisations representing life expectancy across different countries.
+
+```{r life-expectancy-map, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+
+
+ggplot(map_data_2021) +
+  geom_polygon(aes(x = long, y = lat, group = group, fill = `Life expectancy at birth, total (years)`)) +
+  scale_fill_gradientn(colours = c("pink", "deepskyblue"), name = "Life Expectancy") +
+  labs(title = "Life Expectancy by Country, 2021") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(face = "bold", hjust = 0.5, size = 14, family = "sans"),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank())

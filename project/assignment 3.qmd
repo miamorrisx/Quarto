@@ -1,0 +1,252 @@
+---
+title: "Health and Longevity: A Global Perspective"
+subtitle: "Exploring the Intersection of Life Expectancy and HIV Treatment Across Continents"
+format:
+  html:
+    css: styles.css
+    theme: cosmo
+    backgroundcolor: white
+    toc: true
+    toc-depth: 2
+    number-sections: true
+author: "Mia Morris"
+date: 03-31-2024
+execute: 
+  echo: false
+  warning: false
+  message: false
+---
+
+![alt text](https://www.hsph.harvard.edu/global-health-and-population/wp-content/uploads/sites/62/2021/01/cropped-Alison_GlobeVersions-02_VFOUR.png)
+
+## **Introduction**
+This report utilizes a series of data-driven maps and graphs to portray a narrative of progress, disparities, and the ongoing challenges in public health.
+
+Through comparative maps, we observe the substantial shifts in life expectancy between 1971 and 2021, highlighting countries that have made remarkable advances as well as regions where progress has been more elusive. The bar chart provides a focused snapshot of 2022, illustrating the percentage of pregnant women with HIV receiving antiretroviral therapy (ART) across select nations, revealing both strides and shortcomings in the global fight against HIV/AIDS.
+
+Complementing these, scatter plots dissect the correlation between life expectancy and HIV treatment among women in 2021, offering insights into the multifaceted relationship between healthcare access and population longevity. Line graphs further enrich our understanding by tracking HIV ART coverage over time in specific countries, exemplifying the dynamic nature of public health outcomes.
+
+
+## **Half a Century of Change**
+##### *The Global Evolution of Life Expectancy from 1971 to 2021*
+These maps present a stark visual contrast of global life expectancy across five decades. The 1971 map shows lower life expectancies worldwide, with deeper shades representing longer lives concentrated in fewer regions. Fast forward to 2021, and the landscape has dramatically shifted—lighter shades proliferate, signifying the widespread increase in life spans attributed to advancements in medicine, healthcare policies, and living standards. However, the persistence of darker regions serves as a reminder that progress has been uneven and that some areas still face significant challenges in public health.
+
+```{r}
+
+#| label: setup 
+#| include: false
+
+#download libraries 
+library(tidyverse)  
+library(ggrepel)
+
+#load data
+
+unicef_indicator_1 <- read_csv("unicef_indicator_1.csv")
+unicef_indicator_2 <- read_csv("unicef_indicator_2.csv")
+unicef_metadata <- read_csv("unicef_metadata.csv")
+
+#data connections
+combined_data <- unicef_indicator_1 %>%
+  full_join(unicef_indicator_2, by = c("country", "time_period")) %>%
+  full_join(unicef_metadata, by = c("country", "time_period"))
+
+```
+
+
+```{r}
+
+#1971
+data_1971 <- combined_data %>%
+  filter(time_period == 1971)
+
+world_map <- map_data("world")
+
+map_data_1971 <- world_map %>%
+  left_join(data_1971, by = c("region" = "country"))
+
+
+ggplot(map_data_1971) +
+  geom_polygon(aes(x = long, y = lat, group = group, fill = `Life expectancy at birth, total (years)`)) +
+  labs(title = "1971") +
+  theme_minimal() +
+  theme(plot.title = element_text(family = "sans", size = 10, hjust = 0.5),
+        legend.title = element_text(family = "sans", size = 10),
+        legend.text = element_text(family = "sans", size = 8),
+        legend.position = "bottom",
+        legend.direction = "horizontal",
+        axis.text = element_blank(),   # Hide axis text
+        axis.title = element_blank(),  # Hide axis titles
+        axis.ticks = element_blank()) + # Hide axis ticks
+  scale_fill_gradientn(colors = c("#0000FF", "#FFC0CB"), name = "Life Expectancy", limits = c(30, 80))
+
+#2021
+data_2021 <- combined_data %>%
+  filter(time_period == 2021)
+
+world_map <- map_data("world")
+
+map_data_2021 <- world_map %>%
+  left_join(data_2021, by = c("region" = "country"))
+
+ggplot(map_data_2021) +
+  geom_polygon(aes(x = long, y = lat, group = group, fill = `Life expectancy at birth, total (years)`)) +
+  scale_fill_gradientn(colours = c("pink", "deepskyblue"), name = "Life Expectancy") +
+  labs(title = "2021") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5, size = 10, family = "sans"),
+        legend.title = element_text(family = "sans", size = 10),
+        legend.text = element_text(family = "sans", size = 8),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank())
+
+```
+
+
+## **Access to HIV Treatment**
+######  *Analyzing ART Coverage for Pregnant Women in Africa's Economically Challenged Nations*
+This graph illustrates the disparities in healthcare access across some of the poorest nations in Africa, with a focus on the provision of antiretroviral therapy (ART) to pregnant women living with HIV in 2022. T
+
+Countries were selected based on the following factors:
+
+- GDP per capita
+- Poverty rate
+- Human Development Index (HDI)
+
+| Country                  | GDP per Capita (USD) | Poverty Rate (%) | HDI (Human Development Index) |
+|--------------------------|----------------------|------------------|-------------------------------|
+| Niger                    | $510                 | 41.4             | 0.394                         |
+| Cameroon                 | $1,394               | 37.5             | 0.556                         |
+| Senegal                  | $1,504               | 38.7             | 0.512                         |
+| Burkina Faso             | $798                 | 40.1             | 0.452                         |
+| Zimbabwe                 | $1,266               | 70.2             | 0.535                         |
+| Ghana                    | $2,202               | 23.4             | 0.611                         |
+| Ethiopia                 | $884                 | 23.5             | 0.485                         |
+| Kenya                    | $1,749               | 36.8             | 0.602                         |
+| Zambia                   | $1,615               | 57.5             | 0.588                         |
+| United Republic of Tanzania | $1,089            | 49.1             | 0.529                         |
+| Mozambique               | $532                 | 46.1             | 0.456                         |
+| Botswana                 | $8,249               | 16.3             | 0.717                         |
+| Uganda                   | $826                 | 21.4             | 0.542                         |
+                       
+
+The visualization underscores the challenges faced by women in these countries, revealing the efforts and progress made towards ensuring that pregnant women with HIV receive the necessary treatment to maintain their health and to prevent mother-to-child transmission of the virus.
+```{r}
+# bar chart
+
+data_2022 <- combined_data %>%
+  filter(time_period == 2022, country %in% c("Botswana", "Burkina Faso", "Cameroon", "Ethiopia",
+                                             "Ghana", "Kenya", "Mozambique", "Niger", "Senegal",
+                                             "Tanzania, United Republic of", "Uganda", "Zambia", "Zimbabwe"))
+
+ggplot(data_2022, aes(x = reorder(country, `Per cent of pregnant women living with HIV receiving lifelong ART`), 
+                      y = `Per cent of pregnant women living with HIV receiving lifelong ART`)) +
+  geom_bar(stat = "identity", fill = "#FFC0CB") +  # This is a common light pink color
+  geom_text(aes(label = round(`Per cent of pregnant women living with HIV receiving lifelong ART`, 1)), 
+            position = position_stack(vjust = 0.5), color = "black", size = 3.5) +  # Changed text color to black for contrast
+  labs(title = "Percentage of Pregnant Women with HIV Receiving ART in 2022",
+       x = "Country",
+       y = "%") +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        legend.position = "none",
+        plot.title = element_text(size = 10, hjust = 0.5),
+        axis.title = element_text(size = 10)) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))
+
+```
+
+## **Healthcare Indicators**
+##### *Life Expectancy and ART Access for HIV-Positive Women in Africa*
+This scatter plot compares the life expectancy of women with the percentage of pregnant women receiving antiretroviral therapy (ART) in some of the poorest countries in Africa, using data from 2021. Despite the unavailability of 2022 data, this 2021 snapshot provides crucial insights into the intersection of healthcare provision and its potential impact on life expectancy. The selected countries are determined to be the poorest based on their low GDP per capita, high rates of poverty, and limited healthcare resources. This visual analysis aims to explore correlations between improved access to HIV treatment and life expectancy, highlighting where progress is made and where further support is needed.
+```{r}
+# scatterplot 
+
+data_2021 <- combined_data %>%
+  filter(time_period == 2021, country %in% c("Botswana", "Burkina Faso", "Cameroon", "Ethiopia",
+                                             "Ghana", "Kenya", "Mozambique", "Niger", "Senegal",
+                                             "Tanzania, United Republic of", "Uganda", "Zambia", "Zimbabwe"))
+
+font_size <- 12
+font_family <- "sans"
+label_size <- 3
+
+
+ggplot(data_2021, aes(x = `Life expectancy at birth, total (years)`, y = `Per cent of pregnant women living with HIV receiving lifelong ART`)) +
+  geom_point(color = 'pink', size = 3) +  # Change point color to pink and adjust size as needed
+  geom_text_repel(
+    aes(label = country),
+    box.padding = 0.35,
+    point.padding = 0.5,
+    size = label_size  # Use the smaller size for labels
+  ) +
+  labs(
+    title = "Life Expectancy vs % of Women with HIV Receiving ART, 2021",
+    x = "Life Expectancy",
+    y = "%"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = font_size, family = font_family),
+    plot.title = element_text(hjust = 0.5, size = 10),  # Center the title
+    axis.title = element_text(size = 10),
+    legend.position = "none",  # Hide the legend if it's not necessary
+    plot.margin = margin(10, 10, 10, 10)  # Adjust plot margins if needed
+  )
+```
+
+
+## **Tracking Progress**
+##### *A Decade of HIV ART Coverage in the Central African Republic and the Democratic Republic of the Congo*
+These line graphs present the trends in HIV ART coverage over a period of more than a decade (2010-2022) in two of the poorest countries in Africa: the Central African Republic and the Democratic Republic of the Congo. These nations were selected due to their low GDP per capita and the high prevalence of poverty, which pose significant challenges to their healthcare systems. The graphs depict the fluctuations in ART coverage among the population, reflecting various factors such as changes in health policy, funding, international aid, and socio-political stability. They highlight both the strides made in improving access to lifesaving treatments and the obstacles that persist in sustaining consistent healthcare delivery to those living with HIV.
+```{r}
+#TIME SERIES PLOTS
+
+#CAR
+
+car_data <- combined_data %>%
+  filter(country == "Central African Republic", time_period >= 2010, time_period <= 2022)
+
+ggplot(car_data, aes(x = time_period, y = `Per cent of pregnant women living with HIV receiving lifelong ART`)) +
+  geom_line(color = "#FFC0CB") +  # This is the hex code for a light pink color
+  geom_point(color = "#FFC0CB") +
+  labs(
+    title = "HIV ART Coverage Over Time in Central African Republic",
+    x = "Year",
+    y = "%"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5),
+    plot.title = element_text(size = 10, hjust = 0.5),
+    axis.title = element_text(size = 10)
+  ) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10))
+
+#CONGO
+
+CDR_data <- combined_data %>%
+  filter(country == "Congo, the Democratic Republic of the", time_period >= 2010, time_period <= 2022)
+
+
+ggplot(CDR_data, aes(x = time_period, y = `Per cent of pregnant women living with HIV receiving lifelong ART`)) +
+  geom_line(color = "pink") +  # Add color argument here for the line
+  geom_point(color = "pink") +  # And also here for the points if you want them in pink
+  labs(
+    title = "HIV ART Coverage Over Time in the Democratic Republic of the Congo",
+    x = "Year",
+    y = "%"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5), # Rotate x-axis labels for better readability
+    plot.title = element_text(size = 10, hjust = 0.5),
+    axis.title = element_text(size = 10)
+  ) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10))
+```
+
+## **Conclusion**
+In conclusion, this report highlights both the remarkable global progress in life expectancy and the challenges that remain in providing equitable HIV treatment. While many regions have seen significant improvements, disparities still exist, especially in economically challenged areas of Africa. The data emphasizes the need for continued international support, effective health policies, and stronger healthcare systems. To ensure health and longevity for all, it's crucial to address the socioeconomic factors affecting healthcare access and to foster collaborative efforts towards sustainable improvement.
